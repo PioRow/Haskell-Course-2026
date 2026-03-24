@@ -126,8 +126,7 @@ sampleTokens4::[Token]
 sampleTokens4 = [TNum 2, TNum 3,TOp TAdd, TNum 2,TOp TMul, TNum 5,TOp TSub]
 
 --TASK 7
---example execution
-main::IO()
+
 exampleList::[Int]
 exampleList= [1..17]
 
@@ -152,6 +151,10 @@ encode list = foldr encodeElem [] list
 
 decode ::[(a,Int)]->[a]
 decode encds= foldl (\seed (key,cnt)->seed++(replicate cnt key)) [] encds
+
+--example execution
+main::IO()
+
 main=do
     print "----sequence example----"
     print $ seqExample
