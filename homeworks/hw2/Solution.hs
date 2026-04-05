@@ -48,7 +48,10 @@ seqLength mySeq = length mySeq
 --TASK 3
 instance Semigroup (Sequence a) where
     --(<>) :: Sequence a -> Sequence a -> Sequence a
+    x <> Empty = x
+    Empty <> y = y
     (<>) x y = Append x y
+   
 instance Monoid (Sequence a) where
     --mempty :: Sequence a
     mempty= Empty
@@ -128,12 +131,12 @@ sampleTokens4 = [TNum 2, TNum 3,TOp TAdd, TNum 2,TOp TMul, TNum 5,TOp TSub]
 --TASK 7
 
 exampleList::[Int]
-exampleList= [1..17]
+exampleList= [2,4,6,1,5]
 
 myReverse::[a] ->[a]
 myReverse list = foldl (\seed x->(x:seed)) [] list 
 myTakeWhile:: (a->Bool)->[a]->[a]
-myTakeWhile pred list = foldr (\x seed ->if pred x then x:seed else seed ) [] list
+myTakeWhile pred list = foldr (\x seed ->if pred x then x:seed else [] ) [] list
 
 decimal::[Int] ->Int
 decimal list = foldl (\seed x-> (seed*10 +x) ) 0 list
@@ -150,7 +153,7 @@ encode ::Eq a=> [a]->[(a,Int)]
 encode list = foldr encodeElem [] list
 
 decode ::[(a,Int)]->[a]
-decode encds= foldl (\seed (key,cnt)->seed++(replicate cnt key)) [] encds
+decode encds= foldr (\(key,cnt) seed ->(replicate cnt key)++seed) [] encds
 
 --example execution
 main::IO()
