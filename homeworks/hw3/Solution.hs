@@ -5,6 +5,7 @@ import Data.Text.Internal.Encoding.Utf32 (validate)
 import Control.Monad (guard)
 import Data.List (delete)
 import Distribution.Compat.CharParsing (CharParsing(string))
+import Distribution.Simple.Utils (xargs)
 
 type Pos = (Int, Int)
 data Dir = N | S | E | W deriving (Eq, Ord, Show)
@@ -93,7 +94,7 @@ guests = ["A", "B", "C","D"]
 conflicts = [("A", "B")]
 
 --TASK4
-data Result a= Failure String |Success a [String]
+data Result a= Failure String |Success a [String] deriving (Show)
 
 instance Functor Result where
     fmap :: (a -> b) -> Result a -> Result b
@@ -110,10 +111,10 @@ instance Applicative Result where
 instance Monad Result where
     return  =pure
     (Failure str)>>=  _= Failure str
-    (Success x log)>>= f =let
-        (Success y ylog)=f x
-        in
-        Success y (log++ylog)
+    (Success x log)>>= f =
+        case  f x of
+        Success y ylog -> Success y (log++ylog)
+        Failure ylog ->Failure ylog
 
 warn ::String ->Result ()
 warn str= Success () [str]
@@ -128,13 +129,55 @@ validateAge age
     |otherwise= Success age []
 
 
+validateAges :: [Int] -> Result [Int]
+validateAges []=Success [] []
+validateAges (x:xs) =do
+    first<-validateAge x
+    rest<-validateAges xs
+    return (first:rest)
 
 
+--TASK 5
+
+data Expr = Lit Int | Add Expr Expr deriving(Show) -- | Mul Expr Expr | Neg Expr 
 
 
+newtype Writer m a = Writer {runWriter :: (a,m)} deriving (Show)
+
+instance (Monoid m)=>Functor (Writer m) where
+    fmap :: Monoid m => (a -> b) -> Writer m a -> Writer m b
+    fmap f (Writer (x,m)) = Writer(f x,m)
+    
+instance (Monoid m)=>Applicative (Writer m) where
+    pure x = Writer(x,mempty)
+    Writer(f,fm) <*> Writer(x,xm)=Writer(f x,xm<>fm)
+
+instance (Monoid m)=>Monad(Writer m) where
+    (Writer(x,xm)) >>= f = let 
+        Writer(y,ym) =f x 
+        in Writer(y,xm<>ym)
+
+write :: m -> Writer m ()
+write message = Writer ((), message)
 
 
+simplyfy ::Expr ->Writer [String] Expr
+simplyfy (Add (Lit i) (Lit j))= do
+    write ["constant folding: "++show i ++" + "++show j++" -> "++show (i+j)]
+    return (Lit (i+j))
 
+simplyfy (Add (Lit 0) e) =do
+    write ["Add identity: 0 + e -> e"]
+    return e
+simplyfy (Add e (Lit 0) ) =do
+    write ["Add identity: 0 + e -> e"]
+    return e
+simplyfy (Add ex1 ex2)=do 
+    ex1S<-simplyfy ex1
+    ex2S<-simplyfy ex2 
+    return (Add ex1S ex2S)
+
+expExample1 = Add (Add (Lit 1) (Lit 2)) (Lit 3)
 
 --TASK 6
 newtype ZipList a = ZipList {getZipList::[a]} deriving( Show)
@@ -160,7 +203,7 @@ instance Applicative ZipList where
    g x = ZipList (replicate x x)
    there is no natural way to compose resulting ZipLists into one
 -}
-instance Monad ZipList where
+--instance Monad ZipList where
 
 
 main ::IO()
@@ -183,9 +226,15 @@ main=do
     print $ "TASK 3"
     print $ seating guests conflicts
 
-    
+    print $ "TASK 4"
+    print $ validateAges[ 1 ,160,2137]
+    print $ validateAges[ 1 ,16,21]
+    print $ validateAges[ 1 ,160,-2137]
+    print $ "TASK 5"
+    print $ simplyfy expExample1
     print $ "TASK 6"
     print $ fmap (*2) (ZipList [1..3]) 
     print $ fmap (*2) (ZipList []) 
     print $ pure id <*> ZipList [1,2,3]                          -- should be ZipList [1,2,3]
     print $ pure (+) <*> ZipList [1,2,3] <*> ZipList [10,20,30]  -- should be ZipList [11,22,33]
+    
