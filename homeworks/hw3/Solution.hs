@@ -139,7 +139,8 @@ validateAges (x:xs) =do
 
 --TASK 5
 
-data Expr = Lit Int | Add Expr Expr deriving(Show) -- | Mul Expr Expr | Neg Expr 
+data Expr = Lit Int | Add Expr Expr | Mul Expr Expr | Neg Expr 
+ deriving(Show)  
 
 
 newtype Writer m a = Writer {runWriter :: (a,m)} deriving (Show)
@@ -162,22 +163,58 @@ write message = Writer ((), message)
 
 
 simplyfy ::Expr ->Writer [String] Expr
+simplyfy (Lit i)=return (Lit i)
+
+
+simplyfy (Neg (Neg e))=do
+    write ["Double negation: --e -> e"]
+    simplyfy e
+simplyfy (Neg (Lit i))=do
+    return (Lit (-i))
+simplyfy (Neg exp)=do
+    expS<-simplyfy exp
+    return (Neg expS) -- switch to recursive call to simplyfy to single node
+
+simplyfy (Add (Lit 0) e) =do
+    newE<-simplyfy e
+    write ["Add identity: 0 + "++show newE++" -> "++show newE]
+    return newE
+simplyfy (Add e (Lit 0) ) =do
+    newE<-simplyfy e
+    write ["Add identity:  "++show newE++"+ 0 -> "++show newE]
+    return newE
 simplyfy (Add (Lit i) (Lit j))= do
     write ["constant folding: "++show i ++" + "++show j++" -> "++show (i+j)]
     return (Lit (i+j))
-
-simplyfy (Add (Lit 0) e) =do
-    write ["Add identity: 0 + e -> e"]
-    return e
-simplyfy (Add e (Lit 0) ) =do
-    write ["Add identity: 0 + e -> e"]
-    return e
 simplyfy (Add ex1 ex2)=do 
     ex1S<-simplyfy ex1
     ex2S<-simplyfy ex2 
-    return (Add ex1S ex2S)
+    return (Add ex1S ex2S)-- switch to recursive call to simplyfy to single node
 
-expExample1 = Add (Add (Lit 1) (Lit 2)) (Lit 3)
+
+simplyfy (Mul (Lit 1) e) =do
+    newE<-simplyfy e
+    write ["multiplicative identity: 1 * "++show newE++" -> "++show newE]
+    return newE
+simplyfy (Mul e (Lit 1) ) =do
+    newE<-simplyfy e
+    write ["multiplicative identity:  "++show newE++" * 1 -> "++show newE]
+    return newE
+simplyfy (Mul (Lit 0) e) =do
+    write ["zero absorption"]
+    return (Lit 0)
+simplyfy (Mul e (Lit 0) ) =do
+    write ["zero absorption"]
+    return (Lit 0)
+simplyfy (Mul (Lit i) (Lit j))= do
+    write ["constant folding: "++show i ++" * "++show j++" -> "++show (i*j)]
+    return (Lit (i*j))
+simplyfy (Mul ex1 ex2)=do 
+    ex1S<-simplyfy ex1
+    ex2S<-simplyfy ex2 
+    return (Mul ex1S ex2S)-- switch to recursive call to simplyfy to single node
+
+expExample1 = Add (Add (Lit 1) (Add (Lit 2) (Lit 3))) (Lit 3)
 
 --TASK 6
 newtype ZipList a = ZipList {getZipList::[a]} deriving( Show)
@@ -232,6 +269,16 @@ main=do
     print $ validateAges[ 1 ,160,-2137]
     print $ "TASK 5"
     print $ simplyfy expExample1
+    print $ simplyfy (Add (Lit 5) (Lit 10))
+    
+    
+    print $ simplyfy (Neg (Neg (Add (Lit 0) (Lit 5))))
+    
+    
+    print $ simplyfy (Add (Mul (Lit 1) (Lit 5)) (Mul (Lit 10) (Lit 0)))
+    
+    
+    print $ simplyfy (Mul (Add (Lit 2) (Lit 3)) (Mul (Lit 1) (Lit 4)))
     print $ "TASK 6"
     print $ fmap (*2) (ZipList [1..3]) 
     print $ fmap (*2) (ZipList []) 
