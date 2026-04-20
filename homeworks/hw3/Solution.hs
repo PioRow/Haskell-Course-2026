@@ -164,8 +164,6 @@ write message = Writer ((), message)
 
 simplyfy ::Expr ->Writer [String] Expr
 simplyfy (Lit i)=return (Lit i)
-
-
 simplyfy (Neg (Neg e))=do
     write ["Double negation: --e -> e"]
     simplyfy e
@@ -173,8 +171,7 @@ simplyfy (Neg (Lit i))=do
     return (Lit (-i))
 simplyfy (Neg exp)=do
     expS<-simplyfy exp
-    return (Neg expS) -- switch to recursive call to simplyfy to single node
-
+    simplyfy (Neg expS) -- switch to recursive call to simplyfy to single node
 simplyfy (Add (Lit 0) e) =do
     newE<-simplyfy e
     write ["Add identity: 0 + "++show newE++" -> "++show newE]
@@ -189,9 +186,7 @@ simplyfy (Add (Lit i) (Lit j))= do
 simplyfy (Add ex1 ex2)=do 
     ex1S<-simplyfy ex1
     ex2S<-simplyfy ex2 
-    return (Add ex1S ex2S)-- switch to recursive call to simplyfy to single node
-
-
+    simplyfy (Add ex1S ex2S)-- switch to recursive call to simplyfy to single node
 simplyfy (Mul (Lit 1) e) =do
     newE<-simplyfy e
     write ["multiplicative identity: 1 * "++show newE++" -> "++show newE]
@@ -212,7 +207,9 @@ simplyfy (Mul (Lit i) (Lit j))= do
 simplyfy (Mul ex1 ex2)=do 
     ex1S<-simplyfy ex1
     ex2S<-simplyfy ex2 
-    return (Mul ex1S ex2S)-- switch to recursive call to simplyfy to single node
+    simplyfy (Mul ex1S ex2S)-- switch to recursive call to simplyfy to single node
+
+
 
 expExample1 = Add (Add (Lit 1) (Add (Lit 2) (Lit 3))) (Lit 3)
 
@@ -282,6 +279,5 @@ main=do
     print $ "TASK 6"
     print $ fmap (*2) (ZipList [1..3]) 
     print $ fmap (*2) (ZipList []) 
-    print $ pure id <*> ZipList [1,2,3]                          -- should be ZipList [1,2,3]
-    print $ pure (+) <*> ZipList [1,2,3] <*> ZipList [10,20,30]  -- should be ZipList [11,22,33]
-    
+    print $ pure id <*> ZipList [1,2,3]                          
+    print $ pure (+) <*> ZipList [1,2,3] <*> ZipList [10,20,30]
