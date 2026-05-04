@@ -1,6 +1,8 @@
 import Control.Monad.State (State, runState,get,put, execState,evalState)
 import qualified Data.Map as Map
+import Control.Monad.IO.Class
 
+import Text.Read (readMaybe)
 --TASK 1
 data Instr = PUSH Int | POP | DUP | SWAP | ADD | MUL | NEG
 execInstr :: Instr -> State [Int] ()
@@ -117,6 +119,48 @@ editDistM xs ys i j =do
 
 editDistance :: String -> String -> Int
 editDistance s1 s2 = evalState (editDistM s1 s2 (length s1) (length s2)) Map.empty
+--TASK 4
+type ID=Int
+data Location=
+     Start ID  
+    |Decision [String] [ID] ID 
+    | Obstacle Int ID 
+    | Treasure Int ID 
+    | Trap Int ID 
+    | Exit ID 
+    | Path ID 
+
+instance Show Location where
+    show (Start id) = show id ++"Start of adventure"
+    show (Decision options _ id) = show id ++"Decisions"++ show options
+    show (Obstacle difficulty id) = show id ++ "Obstacle " ++ "going back "++show difficulty ++ " steps to "
+    show (Treasure value id) = "Treasure " ++ show value 
+    show (Trap damage id) = "Trap " ++ show damage ++ " "
+    show (Exit id) = show id ++" Game Finished !!!"  
+    show (Path id) = show id ++" nothing interesting here, just a path to "
+
+data Node=Node{
+    current::Location,
+    paths::[ID]
+}
+
+--type AdventureGame a = StateT GameState IO a
+
+getDiceRoll :: IO Int
+getDiceRoll = do
+    print$ " Enter your dice roll (1-6): "
+    input <- getLine
+    case readMaybe input of
+        Just n | n >= 1 && n <= 6 -> return n
+        _ -> putStrLn "Invalid roll! Try again." >> getDiceRoll
+
+
+
+
+
+
+
+
 
 main :: IO ()
 main = do
