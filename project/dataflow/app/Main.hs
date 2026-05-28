@@ -1,6 +1,6 @@
 module Main (main) where
 
-import Lib
+import Dflow
 
 main :: IO ()
-main = someFunc
+main = runPipeline "your dataflow graph description here"

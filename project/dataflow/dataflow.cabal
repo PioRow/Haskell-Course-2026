@@ -25,11 +25,11 @@ source-repository head
 
 library
   exposed-modules:
-      Lib
+      Dflow
   other-modules:
-      Paths_dataflow
-  autogen-modules:
-      Paths_dataflow
+      Dflow.Types
+      Dflow.Parser
+      Dflow.Evaluator
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
@@ -49,6 +49,7 @@ executable dataflow-exe
   build-depends:
       base >=4.7 && <5
     , dataflow
+    , megaparsec
   default-language: Haskell2010
 
 test-suite dataflow-test
