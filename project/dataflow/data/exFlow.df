@@ -1,0 +1,17 @@
+// Simple image-processing pipeline
+source camera {
+  width:  1280,
+  height: 720,
+  format: "rgb24"
+}
+
+transform resize from camera {
+  width:  640,
+  height: 480
+}
+
+transform grayscale from resize
+
+sink display from grayscale {
+  windowName: "Processed Image"
+}

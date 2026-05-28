@@ -1,6 +1,3 @@
-module Dflow.Evaluator (evaluate) where
+module Dflow.Evaluator () where
 
 import Dflow.Types
-
-evaluate :: Program-> IO ()
-evaluate _prg = putStrLn "Evaluation not implemented yet"
