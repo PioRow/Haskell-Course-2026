@@ -1,7 +1,8 @@
 module Dflow 
   ( 
    module Dflow.Types
-  ,readFileAsText
+  , module Dflow.Parser
+  , module Dflow.Evaluator 
   ) where
 
 import Dflow.Types

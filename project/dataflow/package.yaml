@@ -23,6 +23,7 @@ dependencies:
 - base >= 4.7 && < 5
 - megaparsec
 - text
+- containers
 
 ghc-options:
 - -Wall
@@ -56,6 +57,7 @@ executables:
     - dataflow
     - megaparsec
     - text
+    - containers
 
 tests:
   dataflow-test:
@@ -69,3 +71,4 @@ tests:
     - dataflow
     - megaparsec
     - text
+    - containers

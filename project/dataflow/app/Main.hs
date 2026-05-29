@@ -1,9 +1,9 @@
 module Main (main) where
 
 import qualified Data.Text.IO as TIO
-import Dflow
+import Dflow (programP,readFileAsText)
 
-
+import Text.Megaparsec 
 import System.Environment (getArgs)
 import System.IO (hIsEOF, stdin)
 
@@ -11,7 +11,12 @@ import System.IO (hIsEOF, stdin)
 mainJob :: String -> IO ()
 mainJob filePath = do
     input <- readFileAsText filePath
-    TIO.putStrLn $ input
+    case parse programP filePath input of
+      Left err -> putStrLn $ errorBundlePretty err
+      Right prog -> do
+        putStrLn "Parsed program:"
+        print prog
+    
 
 main :: IO ()
 main = do

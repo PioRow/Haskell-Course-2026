@@ -2,16 +2,18 @@
 source camera {
   width:  1280,
   height: 720,
-  format: "rgb24"
+  format: "rgb24",
+  color:[2,1,37],
+  isReal:true
 }
 
 transform resize from camera {
   width:  640,
-  height: 480
+  height: 480,
+  isReal:false
 }
 
-transform grayscale from resize
-
 sink display from grayscale {
-  windowName: "Processed Image"
+  windowName: "Processed Image",
+
 }
