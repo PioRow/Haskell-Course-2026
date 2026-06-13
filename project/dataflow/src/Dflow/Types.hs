@@ -1,8 +1,12 @@
 module Dflow.Types
-(Program(..), Node(..), Edge(..), Value(..))
+(Program(..), Node(..), Edge(..), Value(..),PhotoObj(..)
+,getEdges, getNodes)
  where
-
-
+import qualified Data.Map as M
+getEdges :: Program -> [Edge]
+getEdges (Program _ es) = es
+getNodes :: Program -> [Node]
+getNodes (Program ns _) = ns
 
 data Program = Program [Node] [Edge] deriving (Show, Eq)
 data Value
@@ -22,3 +26,5 @@ data Node = Node
 data Edge = Edge { from :: String, to :: String }
   deriving (Show, Eq)
 
+
+data  PhotoObj = PhotoObj { getFields :: M.Map String Value } deriving (Show, Eq)
