@@ -72,4 +72,11 @@ tests:
     - dataflow
     - megaparsec
     - text
+    - tasty
+    - tasty-hunit
+    - tasty-quickcheck
+    - QuickCheck
     - containers
+    other-modules:       
+    - UnitTests
+    - EndToEndTests

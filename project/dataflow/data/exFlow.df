@@ -4,10 +4,11 @@
 transform resize from camera {
   width:  640,
   height: 480,
-  isReal:false
+  tagged: true
 }
 
-transform grayscale from resize{}
+transform grayscale from resize{
+}
 
 transform sepia from grayscale{}
 

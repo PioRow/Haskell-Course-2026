@@ -7,33 +7,47 @@ import qualified Data.Map as M
 validFields :: [String]
 validFields = [ "name", "width", "height", "format", "filter", "tagged"]
 
-updatePhotoFields :: M.Map String Value -> [(String, Value)] -> M.Map String Value
+valueTypeName :: Value -> String
+valueTypeName (StrVal _)  = "String"
+valueTypeName (NumVal _)  = "Number"
+valueTypeName (BoolVal _) = "Boolean"
+valueTypeName (ListVal _) = "List"
+
+
+updatePhotoFields :: M.Map String Value -> [(String, Value)] -> Either String (M.Map String Value)
 updatePhotoFields currentFields parameters =
-    foldl applyOverride currentFields validFields
+    foldM applyOverride currentFields validFields
   where
     applyOverride accMap key =
       case lookup key parameters of
-        Just newValue -> M.insert key newValue accMap 
-        Nothing       -> accMap
+        Just newValue -> 
+            let oldValueType = fmap valueTypeName (M.lookup key currentFields)
+                newValueType = valueTypeName newValue
+            in if Just newValueType == oldValueType || oldValueType == Nothing
+                then  Right(M.insert key newValue accMap)
+            else Left $ "Incompatible field type for field " ++ key
+        Nothing -> Right accMap
 
 executeSource :: [(String, Value)] -> Either String PhotoObj
 executeSource params =
-    let initialFields = updatePhotoFields (M.insert "Id" (StrVal "photo-id-gen") M.empty) params
- 
-    in Right (PhotoObj initialFields)
+    let initialFields =M.fromList [("id",StrVal "rnd-id-gen")]
+    in
+    case updatePhotoFields initialFields params of
+        Right updatedFields -> Right (PhotoObj updatedFields)
+        Left err -> Left $ "Source execution error: " ++ err
 
 executeTransform :: PhotoObj -> [(String, Value)] -> Either String PhotoObj
 executeTransform (PhotoObj currentFields) params =
-    let transformedFields = updatePhotoFields currentFields params
-    in Right (PhotoObj transformedFields)
+    case updatePhotoFields currentFields params of
+        Right updatedFields -> Right (PhotoObj updatedFields)
+        Left err -> Left $ "transform execution error: " ++ err
 
 
-executeSink :: PhotoObj -> [(String, Value)] -> Either String String
+executeSink :: PhotoObj -> [(String, Value)] -> Either String PhotoObj
 executeSink (PhotoObj currentFields) params =
-    let finalFields = updatePhotoFields currentFields params
-        
-        rows   = [ key ++ ": " ++ show val | key <- validFields, Just val <- [M.lookup key finalFields] ]
-    in Right (unlines rows)
+    case updatePhotoFields currentFields params of
+        Right updatedFields -> Right (PhotoObj updatedFields)
+        Left err -> Left $ "Sink execution error: " ++ err
 
 type Environment = M.Map String PhotoObj
 
@@ -44,7 +58,7 @@ findParent currentId edges =
         [] -> Nothing
         (p:_) -> Just p
 
-processNode ::[Edge]-> (Environment, [String]) -> Node -> Either String (Environment, [String])
+processNode ::[Edge]-> (Environment, [PhotoObj]) -> Node -> Either String (Environment, [PhotoObj])
 processNode edges (env, sinkResults) node =
     case nodeKind node of
         "source" -> do
@@ -68,12 +82,11 @@ processNode edges (env, sinkResults) node =
                 Just inputId -> case M.lookup inputId env of
                     Nothing -> Left $ "Sink node '" ++ nodeId node ++ "' cannot find input PhotoObj with id '" ++ inputId ++ "'."
                     Just inputPhotoObj -> do
-                        result <- executeSink inputPhotoObj (nodeParams node)
-                        
-                        Right (env, ((nodeId node ++ ":\n " ++ result++"\n") : sinkResults))
+                        finalPhotoObj <- executeSink inputPhotoObj (nodeParams node)
+                        Right (env, sinkResults ++ [finalPhotoObj])
         _ -> Left $ "Unknown node kind: " ++ nodeKind node
 
-execute:: Program -> Either String String
+execute:: Program -> Either String [PhotoObj]
 execute prog =
     let
         sortedNodes= getNodes prog
@@ -82,6 +95,6 @@ execute prog =
     do
         (_,sinkResults) <- foldM (processNode edges) (M.empty, []) sortedNodes
         if null sinkResults
-          then Right "Execution completed: No active sink outputs flushed."
-          else Right (unlines (reverse sinkResults))
+          then Left "No sink nodes found in the program."
+          else Right sinkResults
     

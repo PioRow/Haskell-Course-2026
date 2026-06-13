@@ -1,6 +1,7 @@
 module Dflow.Validator (
-    validateProgram
-
+    validateProgram,
+    topoSort,
+    trimProgram
 ) where
 import Dflow.Types
 import qualified Data.Map as M

@@ -29,10 +29,12 @@ lexeme = L.lexeme sc
 
 symbol :: T.Text -> Parser T.Text
 symbol = L.symbol sc
+
+srcNodeKindP :: Parser String
+srcNodeKindP= T.unpack <$> symbol "source"
 nodeKindP :: Parser String
 nodeKindP = choice
-  [ T.unpack <$> symbol "source"
-  , T.unpack <$> symbol "transform"
+  [ T.unpack <$> symbol "transform"
   , T.unpack <$> symbol "sink"
   ]
 
@@ -80,7 +82,7 @@ paramsP= lexeme $ between (symbol "{") (symbol "}") (pairP `sepEndBy` symbol ","
 
 srcP :: Parser (String,String, Maybe String)
 srcP = do
-  kind <- nodeKindP
+  kind <- srcNodeKindP
   nodeIdent <- identifierP
   return (kind, nodeIdent, Nothing)
 nonSrcP :: Parser (String,String, Maybe String)
