@@ -24,7 +24,10 @@ dependencies:
 - megaparsec
 - text
 - containers
-
+- tasty
+- tasty-hunit
+- tasty-quickcheck
+- QuickCheck
 ghc-options:
 - -Wall
 - -Wcompat
@@ -80,3 +83,4 @@ tests:
     other-modules:       
     - UnitTests
     - EndToEndTests
+    - PropertyTests

@@ -26,14 +26,12 @@ runPipeline filePath txt = do
 
 mainJob filePath = do
     input <- readFileAsText filePath
-    
-    -- We wrap the Either pipeline in a clean handler
     case runPipeline filePath input of
       Left err  -> putStrLn $ "Error: " ++ err
       Right ret -> do
         putStrLn "Program executed successfully."
         putStrLn $ "Result: " ++ show ret
-    -- ⚡ Flat Monadic Flow: Any Left instantly exits the computation!
+
     
     
     
